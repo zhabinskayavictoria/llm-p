@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 
 class UserPublic(BaseModel):
+    """Публичная схема пользователя (без пароля)"""
     id: int
     email: EmailStr
     role: str

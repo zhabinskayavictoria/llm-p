@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
+    """Настройки приложения"""
     app_name: str = "llm-p"
     env: str = "local"
     

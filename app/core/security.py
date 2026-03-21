@@ -6,12 +6,15 @@ from app.core.config import settings
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
+    """Хеширует пароль с помощью bcrypt"""
     return pwd_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Проверяет соответствие пароля его хешу"""
     return pwd_context.verify(plain_password, hashed_password)
 
 def create_access_token(sub: int, role: str) -> str:
+    """Создает JWT токен доступа с sub и role"""
     now = datetime.now(timezone.utc)
     expire = now + timedelta(minutes=settings.access_token_expire_minutes)
     payload = {
@@ -23,6 +26,7 @@ def create_access_token(sub: int, role: str) -> str:
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_alg)
 
 def decode_access_token(token: str) -> dict:
+    """Декодирует и валидирует JWT токен, возвращает payload"""
     try:
         payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_alg])
         return payload

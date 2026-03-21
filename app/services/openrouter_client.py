@@ -3,7 +3,10 @@ from app.core.config import settings
 from app.core.errors import ExternalServiceError
 
 class OpenRouterClient:
-    def __init__(self):
+    """Клиент для работы с OpenRouter API"""
+    def __init__(self, http_client: httpx.AsyncClient):
+        """Инициализирует клиент с HTTP-клиентом и настройками"""
+        self.http_client = http_client
         self.base_url = settings.openrouter_base_url
         self.model = settings.openrouter_model  
         self.headers = {
@@ -14,6 +17,7 @@ class OpenRouterClient:
         }
 
     async def chat_completion(self, messages: list[dict[str, str]], temperature: float = 0.7) -> str:
+        """Отправляет запрос к OpenRouter и возвращает ответ модели"""
         url = f"{self.base_url}/chat/completions"
         payload = {
             "model": self.model,  
@@ -21,18 +25,17 @@ class OpenRouterClient:
             "temperature": temperature,
         }
 
-        async with httpx.AsyncClient() as client:
-            try:
-                response = await client.post(url, headers=self.headers, json=payload, timeout=30.0)
-                response.raise_for_status()
-                data = response.json()
-                if data["choices"] and data["choices"][0]["message"]["content"]:
-                    return data["choices"][0]["message"]["content"]
-                else:
-                    raise ExternalServiceError("Empty response")
-            except httpx.HTTPStatusError as e:
-                raise ExternalServiceError(f"OpenRouter API error: {e.response.status_code}") from e
-            except httpx.RequestError as e:
-                raise ExternalServiceError(f"OpenRouter network error: {str(e)}") from e
-            except Exception as e:
-                raise ExternalServiceError(f"Error from OpenRouter: {str(e)}") from e
+        try:
+            response = await self.http_client.post(url, headers=self.headers, json=payload, timeout=30.0)
+            response.raise_for_status()
+            data = response.json()
+            if data["choices"] and data["choices"][0]["message"]["content"]:
+                return data["choices"][0]["message"]["content"]
+            else:
+                raise ExternalServiceError("Empty response")
+        except httpx.HTTPStatusError as e:
+            raise ExternalServiceError(f"OpenRouter API error: {e.response.status_code}") from e
+        except httpx.RequestError as e:
+            raise ExternalServiceError(f"OpenRouter network error: {str(e)}") from e
+        except Exception as e:
+            raise ExternalServiceError(f"Error from OpenRouter: {str(e)}") from e

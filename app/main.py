@@ -11,6 +11,7 @@ from app.api.routes_chat import router as chat_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Создает таблицы при старте, закрывает соединения при остановке"""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
@@ -18,9 +19,10 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
+    """Создает и настраивает приложение FastAPI"""
     app = FastAPI(
         title=settings.app_name,
-        description="A secure API for interacting with LLM via OpenRouter",
+        description="FastAPI service with JWT auth, SQLite, and OpenRouter LLM proxy",
         version="0.1.0",
         lifespan=lifespan,
     )

@@ -14,9 +14,10 @@ async def register(
     request: RegisterRequest,
     usecase: AuthUseCase = Depends(get_auth_usecase),
 ):
+    """Регистрирует нового пользователя"""
     try:
-        user = await usecase.register(request.email, request.password)
-        return user
+        user_dict = await usecase.register(request.email, request.password)
+        return UserPublic(**user_dict)
     except ConflictError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
@@ -25,10 +26,10 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     usecase: AuthUseCase = Depends(get_auth_usecase),
 ):
+    """Авторизует пользователя и возвращает JWT токен"""
     try:
-        # OAuth2 form uses 'username' field, we use it as email
-        token_response = await usecase.login(form_data.username, form_data.password)
-        return token_response
+        token = await usecase.login(form_data.username, form_data.password)
+        return TokenResponse(access_token=token)
     except UnauthorizedError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -41,7 +42,9 @@ async def get_me(
     user_id: int = Depends(get_current_user_id),
     usecase: AuthUseCase = Depends(get_auth_usecase),
 ):
+    """Возвращает профиль текущего пользователя"""
     try:
-        return await usecase.get_profile(user_id)
+        user_dict = await usecase.get_profile(user_id)
+        return UserPublic(**user_dict)
     except NotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
