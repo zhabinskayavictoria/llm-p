@@ -3,11 +3,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.usecases.chat import ChatUseCase
 from app.core.errors import ExternalServiceError
-from app.api.deps import get_chat_usecase, get_current_user_id
+from app.api.deps import get_chat_usecase, get_current_user_id, oauth2_scheme
 
-router = APIRouter(prefix="/chat", tags=["chat"])
+router = APIRouter()
 
-@router.post("", response_model=ChatResponse)
+@router.post("", response_model=ChatResponse, dependencies=[Depends(oauth2_scheme)])
 async def chat(
     request: ChatRequest,
     user_id: int = Depends(get_current_user_id),
@@ -28,7 +28,7 @@ async def chat(
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Server error")
 
-@router.get("/history", response_model=list)
+@router.get("/history", response_model=list, dependencies=[Depends(oauth2_scheme)])
 async def get_history(
     user_id: int = Depends(get_current_user_id),
     usecase: ChatUseCase = Depends(get_chat_usecase),
@@ -45,7 +45,7 @@ async def get_history(
         for msg in history
     ]
 
-@router.delete("/history", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/history", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(oauth2_scheme)])
 async def clear_history(
     user_id: int = Depends(get_current_user_id),
     usecase: ChatUseCase = Depends(get_chat_usecase),

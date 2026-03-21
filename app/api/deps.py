@@ -11,7 +11,7 @@ from app.usecases.auth import AuthUseCase
 from app.usecases.chat import ChatUseCase
 import httpx
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
 async def get_db() -> AsyncSession:
     """Предоставляет сессию базы данных"""

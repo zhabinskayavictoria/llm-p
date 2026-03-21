@@ -5,9 +5,9 @@ from app.schemas.auth import RegisterRequest, TokenResponse
 from app.schemas.user import UserPublic
 from app.usecases.auth import AuthUseCase
 from app.core.errors import ConflictError, UnauthorizedError, NotFoundError
-from app.api.deps import get_auth_usecase, get_current_user_id
+from app.api.deps import get_auth_usecase, get_current_user_id, oauth2_scheme
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter()
 
 @router.post("/register", response_model=UserPublic)
 async def register(
@@ -37,7 +37,7 @@ async def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-@router.get("/me", response_model=UserPublic)
+@router.get("/me", response_model=UserPublic, dependencies=[Depends(oauth2_scheme)])
 async def get_me(
     user_id: int = Depends(get_current_user_id),
     usecase: AuthUseCase = Depends(get_auth_usecase),

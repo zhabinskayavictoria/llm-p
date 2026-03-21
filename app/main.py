@@ -23,7 +23,6 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         description="FastAPI service with JWT auth, SQLite, and OpenRouter LLM proxy",
-        version="0.1.0",
         lifespan=lifespan,
     )
     
@@ -35,8 +34,8 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     
-    app.include_router(auth_router)
-    app.include_router(chat_router)
+    app.include_router(auth_router, prefix="/auth", tags=["auth"])
+    app.include_router(chat_router, prefix="/chat", tags=["chat"])
     
     @app.get("/health", tags=["health"])
     async def health_check():
